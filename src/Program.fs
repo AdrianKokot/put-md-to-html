@@ -1,11 +1,8 @@
 ﻿module Program
 
-open System
-open System.IO
-
 open modules.CommandLine
 open modules.ContentReader
-
+open modules.MarkdownParser
 
 [<EntryPoint>]
 let main argv =
@@ -13,6 +10,8 @@ let main argv =
     let options = parseCommandLineArguments (argv |> Array.toList)
     let content = readContent options
 
-    printf "%s" content
+    let md = parseMarkdown content
+
+    printf $"%A{md}"
 
     0
