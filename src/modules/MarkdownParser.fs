@@ -63,21 +63,25 @@ let (|Emphasis|_|) (line: char list) =
     
 
 let parseCharsAcc (acc: char list) =
-    Text(new string(acc |> List.rev |> List.toArray))
+    if acc.Length > 0 then
+        [Text(new string(acc |> List.rev |> List.toArray))]
+    else
+        []
 
 let rec parseChars (line: char list) (acc: char list) = seq {
     match line with
-    | [] -> yield parseCharsAcc acc
+    | [] ->
+        yield! parseCharsAcc acc
     | ' '::' '::'\r'::'\n':: rest
     | ' '::' '::('\n' | '\r'):: rest ->
         yield LineBreak
         yield! parseChars rest []
     | Strong(wrapped, rest) ->
-        yield parseCharsAcc acc
+        yield! parseCharsAcc acc
         yield Strong(parseChars wrapped [] |> List.ofSeq)
         yield! parseChars rest []
     | Emphasis(wrapped, rest) ->
-        yield parseCharsAcc acc
+        yield! parseCharsAcc acc
         yield Emphasis(parseChars wrapped [] |> List.ofSeq)
         yield! parseChars rest []
     | c::rest ->
