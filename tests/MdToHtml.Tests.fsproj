@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="InlineElementsParsingTest.fs" />
-    <Compile Include="Program.fs"/>
+    <Compile Include="IntlineTests.fs" />
+    <Compile Include="BlockquoteTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

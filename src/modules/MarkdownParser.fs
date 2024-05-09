@@ -7,6 +7,7 @@ type MarkdownAST =
     | Paragraph of MarkdownAST list 
     | Emphasis of MarkdownAST list
     | Strong of MarkdownAST list
+    | BlockQuote of MarkdownAST list
     | Text of string
     | LineBreak
 
@@ -31,16 +32,27 @@ let (|StartsWithRepeated|_|) (repeated:string) (text:string) =
     else Some(n/repeated.Length, text.Substring(n, text.Length - n))
     
 let (|Heading|_|) (line: string) =
-    // let rec parseHeading (line: string) (level: int) (text: string) =
     match line with
     | StartsWithRepeated("#") (level, text) -> Some(level, text.Substring(1))
     | _ -> None
-    // parseHeading line 0 ""
-    
-    
-// let (|CharListWrappedWith|_|) (wrap: char list) (input: char list) =
-    // if 
-    
+   
+let (|BlockQuote|_|) (lines: string list) =
+    match lines with
+    | [] -> None
+    | line :: _ as mdQuote ->
+        if line.StartsWith(">") then
+            let rec loop (lines: string list) (acc: string list) = 
+                match lines with
+                | [] -> Some(acc |> List.rev, [])
+                | line :: rest ->
+                    if line.StartsWith(">") then
+                        loop rest (line.Substring(1).TrimStart() :: acc)
+                    else
+                        Some(acc |> List.rev, line :: rest)
+                        
+            loop mdQuote []
+        else None
+
 let (|Strong|_|) (line: char list) =
     match line with
     | '*'::'*'::_ 
@@ -96,6 +108,9 @@ let rec parseBlocks (lines: string list) = seq {
     | [] -> ()
     | Heading(level, text) :: rest ->
         yield Header(level, parseBlock text)
+        yield! parseBlocks(rest)
+    | BlockQuote(quoted, rest) ->
+        yield BlockQuote(parseBlocks quoted |> List.ofSeq)
         yield! parseBlocks(rest)
     | line :: rest ->
         yield Paragraph(parseBlock line)
