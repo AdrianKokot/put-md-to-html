@@ -27,4 +27,4 @@ let private _readContent  (options: CommandLineOptions) =
 let readContent (options: CommandLineOptions) =
     let content = _readContent options
     
-    content.Split([|'\n'|], StringSplitOptions.RemoveEmptyEntries) |> Array.toList
+    content.Split([|'\n'|]) |> Array.toList
