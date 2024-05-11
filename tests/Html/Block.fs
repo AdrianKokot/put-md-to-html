@@ -83,3 +83,43 @@ let ShouldRenderParagraphWithStrong () =
     let expected = "<p>line1 <strong>line2</strong></p>"
 
     Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderOrderedList () =
+    let content = [OrderedList([ ListItem([Paragraph([ Text("line1") ])]); ListItem([Paragraph([ Text("line2") ])]) ])]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<ol><li><p>line1</p></li><li><p>line2</p></li></ol>"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderUnorderedList () =
+    let content = [UnorderedList([ ListItem([Paragraph([ Text("line1") ])]); ListItem([Paragraph([ Text("line2") ])]) ])]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<ul><li><p>line1</p></li><li><p>line2</p></li></ul>"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderOrderedListWithNestedUnorderedList () =
+    let content = [OrderedList([ ListItem([Paragraph([ Text("line1") ]); UnorderedList([ ListItem([Paragraph([ Text("line2") ])])])])])]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<ol><li><p>line1</p><ul><li><p>line2</p></li></ul></li></ol>"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderUnorderedListWithNestedOrderedList () =
+    let content = [UnorderedList([ ListItem([Paragraph([ Text("line1") ]); OrderedList([ ListItem([Paragraph([ Text("line2") ])])])])])]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<ul><li><p>line1</p><ol><li><p>line2</p></li></ol></li></ul>"
+
+    Assert.That(actual, Is.EqualTo(expected))

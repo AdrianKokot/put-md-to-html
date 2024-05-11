@@ -67,8 +67,23 @@ let rec renderHtmlSeq (ast: MarkdownAST list) =
         | MarkdownAST.Image(url, title, alt) :: rest ->
             let titleSrc = if title.Length > 0 then $" title=\"%s{title}\"" else ""
             let altSrc = if alt.Length > 0 then $" alt=\"%s{alt}\"" else ""
-            
+
             yield $"<img src=\"%s{url}\"%s{titleSrc}%s{altSrc}>"
+            yield! renderHtmlSeq rest
+        | MarkdownAST.OrderedList(content) :: rest ->
+            yield "<ol>"
+            yield! renderHtmlSeq content
+            yield "</ol>"
+            yield! renderHtmlSeq rest
+        | MarkdownAST.UnorderedList(content) :: rest ->
+            yield "<ul>"
+            yield! renderHtmlSeq content
+            yield "</ul>"
+            yield! renderHtmlSeq rest
+        | MarkdownAST.ListItem(content) :: rest ->
+            yield "<li>"
+            yield! renderHtmlSeq content
+            yield "</li>"
             yield! renderHtmlSeq rest
         | _ -> ()
     }

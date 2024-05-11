@@ -1,10 +1,10 @@
 ﻿module MdToHtml.Modules.MarkdownParser
 
+open System.Text.RegularExpressions
 open Microsoft.FSharp.Collections
 
 // TODO: Proper handling linebreaks
 // TODO: Refactor paragraphs (paragraph next to paragraph should be linebreak not 2 paragraphs unless there's blank line in between them)
-// TODO: Lists
 
 type MarkdownAST =
     | Header of int * MarkdownAST list
@@ -19,6 +19,9 @@ type MarkdownAST =
     | HorizontalRule
     | Link of string * string * MarkdownAST list
     | Image of string * string * string
+    | ListItem of MarkdownAST list
+    | UnorderedList of MarkdownAST list
+    | OrderedList of MarkdownAST list
 
 let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
     if text.StartsWith(starts) then
@@ -61,7 +64,7 @@ let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
 let (|StartsWithRepeated|_|) (repeated: string) (text: string) =
     let rec loop i =
         if i = text.Length then i
-        elif text[i] <> repeated.[i % repeated.Length] then i
+        elif text[i] <> repeated[i % repeated.Length] then i
         else loop (i + 1)
 
     let n = loop 0
@@ -113,6 +116,41 @@ let (|CodeBlock|_|) (lines: string list) =
             loop rest []
         else
             None
+
+let (|List|_|) (listItemRegex: string) (lines: string list ) =
+    let appendIfNotEmpty (acc: string list list) (currentListItemAcc: string list) =
+        if currentListItemAcc.Length > 0 then
+            (currentListItemAcc |> List.rev) :: acc
+        else
+            acc
+    
+    match lines with
+    | [] -> None
+    | line :: _ as mdList when Regex.IsMatch(line, listItemRegex) ->
+        let rec loop (lines: string list) (currentListItemAcc: string list) (acc: string list list) =
+            match lines with
+            | [] -> Some((appendIfNotEmpty acc currentListItemAcc) |> List.rev, [])
+            | "" :: rest -> Some((appendIfNotEmpty acc currentListItemAcc) |> List.rev, rest)
+            | line :: rest ->
+                let matches = Regex.Match(line, listItemRegex)
+                
+                if matches.Success then
+                    loop rest [line.Substring(matches.Length)] (appendIfNotEmpty acc currentListItemAcc)
+                else
+                    loop rest (line.TrimStart() :: currentListItemAcc) acc
+
+        loop mdList [] []
+    | _ -> None
+
+let (|OrderedList|_|) (lines: string list) =
+    match lines with
+    | List @"^\d+(\.|\)) " (list, rest) -> Some(list, rest)
+    | _ -> None
+
+let (|UnorderedList|_|) (lines: string list) =
+    match lines with
+    | List @"^[-+*] " (list, rest) -> Some(list, rest)
+    | _ -> None
 
 let (|HorizontalRule|_|) (line: string) =
     match line with
@@ -233,10 +271,12 @@ let rec parseChars (line: char list) (acc: char list) =
     seq {
         match line with
         | [] -> yield! parseCharsAcc acc
-        | ' ' :: ' ' :: '\r' :: '\n' :: rest
-        | ' ' :: ' ' :: ('\n' | '\r') :: rest ->
-            yield LineBreak
-            yield! parseChars rest []
+        // | '\r' :: '\n' :: rest
+        // | ('\n' | '\r') :: rest
+        // | ' ' :: ' ' :: '\r' :: '\n' :: rest
+        // | ' ' :: ' ' :: ('\n' | '\r') :: rest ->
+        //     yield LineBreak
+        //     yield! parseChars rest []
         | '\\' :: EscapableChar(char) :: rest -> yield! parseChars rest (char :: acc)
         | '\\' :: HtmlEntity(chars) :: rest -> yield! parseChars rest (chars @ acc)
         | Strong(wrapped, rest) ->
@@ -280,6 +320,12 @@ let rec parseBlocks (lines: string list) =
             yield! parseBlocks rest
         | Heading(level, text) :: rest ->
             yield Header(level, parseBlock text)
+            yield! parseBlocks rest
+        | OrderedList(list, rest) ->
+            yield OrderedList(list |> List.map (fun a -> ListItem(a |> parseBlocks |> List.ofSeq)))
+            yield! parseBlocks rest
+        | UnorderedList(list, rest) ->
+            yield UnorderedList(list |> List.map (fun a -> ListItem(a |> parseBlocks |> List.ofSeq)))
             yield! parseBlocks rest
         | line :: rest ->
             yield Paragraph(parseBlock line)

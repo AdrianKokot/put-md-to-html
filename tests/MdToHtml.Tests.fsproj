@@ -13,6 +13,7 @@
     <Compile Include="Markdown\Blockquote.fs" />
     <Compile Include="Markdown\CodeBlock.fs" />
     <Compile Include="Markdown\HorizontalRule.fs" />
+    <Compile Include="Markdown\List.fs" />
     <Compile Include="Html\Inline.fs" />
     <Compile Include="Html\Block.fs" />
   </ItemGroup>
