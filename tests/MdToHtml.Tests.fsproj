@@ -12,6 +12,7 @@
     <Compile Include="Inline.fs" />
     <Compile Include="Blockquote.fs" />
     <Compile Include="CodeBlock.fs" />
+    <Compile Include="HorizontalRule.fs" />
   </ItemGroup>
 
   <ItemGroup>

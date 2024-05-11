@@ -12,6 +12,7 @@ type MarkdownAST =
     | LineBreak
     | CodeBlock of string * string list
     | InlineCode of string
+    | HorizontalRule
 
 let (|WrappedWith|_|) (starts:string, ends:string) (text:string) =
     if text.StartsWith(starts) then
@@ -74,6 +75,15 @@ let (|CodeBlock|_|) (lines: string list) =
             loop rest []
         else None
         
+let (|HorizontalRule|_|) (line: string) =
+    match line with
+    | StartsWithRepeated("-") (amount, _) 
+    | StartsWithRepeated("*") (amount, _) 
+    | StartsWithRepeated("_") (amount, _) ->
+        if amount >= 3 then Some()
+        else None
+    | _ -> None
+
 let (|InlineCode|_|) (line: char list) =
     match line with
     | '`'::_ ->
@@ -139,14 +149,17 @@ let rec parseBlock (line: string) =
 let rec parseBlocks (lines: string list) = seq {
     match lines with
     | [] -> ()
-    | Heading(level, text) :: rest ->
-        yield Header(level, parseBlock text)
+    | HorizontalRule :: rest ->
+        yield HorizontalRule
+        yield! parseBlocks(rest)
+    | CodeBlock(code, lang, rest) ->
+        yield CodeBlock(lang, code)
         yield! parseBlocks(rest)
     | BlockQuote(quoted, rest) ->
         yield BlockQuote(parseBlocks quoted |> List.ofSeq)
         yield! parseBlocks(rest)
-    | CodeBlock(code, lang, rest) ->
-        yield CodeBlock(lang, code)
+    | Heading(level, text) :: rest ->
+        yield Header(level, parseBlock text)
         yield! parseBlocks(rest)
     | line :: rest ->
         yield Paragraph(parseBlock line)
