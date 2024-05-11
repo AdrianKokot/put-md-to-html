@@ -184,3 +184,13 @@ let ShouldRenderLinkWithImageWithoutTitleAndAlt () =
 
     Assert.That(actual, Is.EqualTo(expected))
 
+
+[<Test>]
+let ShouldRenderEscapedCharacters () =
+    let content = [Text("escaped &amp; characters")]
+
+    let actual = renderHtmlBody content
+
+    let expected = "escaped &amp; characters"
+
+    Assert.That(actual, Is.EqualTo(expected))

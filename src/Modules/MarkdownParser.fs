@@ -2,7 +2,6 @@
 
 open Microsoft.FSharp.Collections
 
-// TODO: Escaping characters
 // TODO: Proper handling linebreaks
 // TODO: Refactor paragraphs (paragraph next to paragraph should be linebreak not 2 paragraphs unless there's blank line in between them)
 // TODO: Lists
@@ -23,12 +22,12 @@ type MarkdownAST =
 
 let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
     if text.StartsWith(starts) then
-        
+
         if starts = ends then
             let id = text.IndexOf(starts, starts.Length)
-            
+
             if id >= 0 then
-            
+
                 let wrapped = text.Substring(starts.Length, id - starts.Length)
                 let rest = text.Substring(id + starts.Length, text.Length - id - starts.Length)
                 Some(wrapped, rest)
@@ -36,11 +35,11 @@ let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
                 None
         else
             let nextStart = text.IndexOf(starts, starts.Length)
-            
+
             if nextStart >= 0 then
-  
+
                 let id = text.LastIndexOf(ends, text.Length - 1, text.Length - nextStart - 1)
-                
+
                 if id >= 0 then
                     let wrapped = text.Substring(starts.Length, id - starts.Length)
                     let rest = text.Substring(id + ends.Length, text.Length - id - ends.Length)
@@ -49,7 +48,7 @@ let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
                     None
             else
                 let id = text.LastIndexOf(ends)
-                
+
                 if id >= 0 then
                     let wrapped = text.Substring(starts.Length, id - starts.Length)
                     let rest = text.Substring(id + ends.Length, text.Length - id - ends.Length)
@@ -201,6 +200,35 @@ let parseCharsAcc (acc: char list) =
     else
         []
 
+let (|EscapableChar|_|) =
+    function
+    | '`'
+    | '*'
+    | '_'
+    | '\\'
+    | '{'
+    | '}'
+    | '['
+    | ']'
+    | '('
+    | ')'
+    | '#'
+    | '+'
+    | '-'
+    | '.'
+    | '!'
+    | '|' as char -> Some(char)
+    | _ -> None
+
+let (|HtmlEntity|_|) =
+    function
+    | '>' -> Some([ ';'; 't'; 'g'; '&' ])
+    | '<' -> Some([ ';'; 't'; 'l'; '&' ])
+    | '&' -> Some([ ';'; 'p'; 'm'; 'a'; '&' ])
+    | '"' -> Some([ ';'; 't'; 'o'; 'u'; 'q'; '&' ])
+    | '\'' -> Some([ ';'; 's'; 'o'; 'p'; 'a'; '&' ])
+    | _ -> None
+
 let rec parseChars (line: char list) (acc: char list) =
     seq {
         match line with
@@ -209,6 +237,8 @@ let rec parseChars (line: char list) (acc: char list) =
         | ' ' :: ' ' :: ('\n' | '\r') :: rest ->
             yield LineBreak
             yield! parseChars rest []
+        | '\\' :: EscapableChar(char) :: rest -> yield! parseChars rest (char :: acc)
+        | '\\' :: HtmlEntity(chars) :: rest -> yield! parseChars rest (chars @ acc)
         | Strong(wrapped, rest) ->
             yield! parseCharsAcc acc
             yield Strong(parseChars wrapped [] |> List.ofSeq)

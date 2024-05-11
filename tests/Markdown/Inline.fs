@@ -134,7 +134,8 @@ let ShouldParseInlineCodeWrappedInStrong () =
 [<Test>]
 let ShouldParseInlineCodeWrappedInStrongAndEmphasis () =
     let content =
-        "This is some text with **`inline code`** and *`inline code2`*".Split([| '\n' |])
+        "This is some text with **`inline code`** and *`inline code2`*"
+            .Split([| '\n' |])
         |> List.ofArray
 
     let actual = parseMarkdown content
@@ -164,7 +165,8 @@ let ShouldParseLink () =
 [<Test>]
 let ShouldParseLinkWithStrongAndEmphasis () =
     let content =
-        "[This is a link with **strong** and *emphasis*](https://www.google.com)".Split([| '\n' |])
+        "[This is a link with **strong** and *emphasis*](https://www.google.com)"
+            .Split([| '\n' |])
         |> List.ofArray
 
     let actual = parseMarkdown content
@@ -192,20 +194,15 @@ let ShouldParseLinkWithInlineCode () =
     let actual = parseMarkdown content
 
     let expected =
-        [ Paragraph(
-              [ Link(
-                    "https://www.google.com",
-                    "",
-                    [ Text("This is a link with "); InlineCode("inline code") ]
-                ) ]
-          ) ]
+        [ Paragraph([ Link("https://www.google.com", "", [ Text("This is a link with "); InlineCode("inline code") ]) ]) ]
 
     Assert.That(actual, Is.EquivalentTo(expected))
 
 [<Test>]
 let ShouldParseLinkWithStrongAndEmphasisAndInlineCode () =
     let content =
-        "[This is a link with **strong** and *emphasis* and `inline code`](https://www.google.com)".Split([| '\n' |])
+        "[This is a link with **strong** and *emphasis* and `inline code`](https://www.google.com)"
+            .Split([| '\n' |])
         |> List.ofArray
 
     let actual = parseMarkdown content
@@ -229,7 +226,8 @@ let ShouldParseLinkWithStrongAndEmphasisAndInlineCode () =
 [<Test>]
 let ShouldParseLinkWithStrongAndEmphasisAndInlineCodeInLinkText () =
     let content =
-        "[This is a link with **strong** and *emphasis* and `inline code`](https://www.google.com)".Split([| '\n' |])
+        "[This is a link with **strong** and *emphasis* and `inline code`](https://www.google.com)"
+            .Split([| '\n' |])
         |> List.ofArray
 
     let actual = parseMarkdown content
@@ -252,7 +250,8 @@ let ShouldParseLinkWithStrongAndEmphasisAndInlineCodeInLinkText () =
 
 let ShouldParseLinkWithTitle () =
     let content =
-        "[This is a link with a title](https://www.google.com \"Google\")".Split([| '\n' |])
+        "[This is a link with a title](https://www.google.com \"Google\")"
+            .Split([| '\n' |])
         |> List.ofArray
 
     let actual = parseMarkdown content
@@ -261,14 +260,15 @@ let ShouldParseLinkWithTitle () =
         [ Paragraph([ Link("https://www.google.com", "Google", [ Text("This is a link with a title") ]) ]) ]
 
     Assert.That(actual, Is.EquivalentTo(expected))
-    
+
 let ShouldParseLinkWithTitleAndStrongAndEmphasis () =
     let content =
-        "[This is a link with a title and **strong** and *emphasis*](https://www.google.com \"Google\")".Split([| '\n' |])
+        "[This is a link with a title and **strong** and *emphasis*](https://www.google.com \"Google\")"
+            .Split([| '\n' |])
         |> List.ofArray
-        
+
     let actual = parseMarkdown content
-    
+
     let expected =
         [ Paragraph(
               [ Link(
@@ -280,9 +280,9 @@ let ShouldParseLinkWithTitleAndStrongAndEmphasis () =
                       Emphasis([ Text("emphasis") ]) ]
                 ) ]
           ) ]
-        
+
     Assert.That(actual, Is.EquivalentTo(expected))
-    
+
 [<Test>]
 let ShouldParseImage () =
     let content =
@@ -298,7 +298,8 @@ let ShouldParseImage () =
 [<Test>]
 let ShouldParseImageWithTitle () =
     let content =
-        "![This is an image with a title](https://www.google.com \"Google\")".Split([| '\n' |])
+        "![This is an image with a title](https://www.google.com \"Google\")"
+            .Split([| '\n' |])
         |> List.ofArray
 
     let actual = parseMarkdown content
@@ -311,26 +312,22 @@ let ShouldParseImageWithTitle () =
 [<Test>]
 let ShouldParseImageInLink () =
     let content =
-        "[![This is an image](https://www.google.com)](https://www.google.com)".Split([| '\n' |])
+        "[![This is an image](https://www.google.com)](https://www.google.com)"
+            .Split([| '\n' |])
         |> List.ofArray
 
     let actual = parseMarkdown content
 
     let expected =
-        [ Paragraph(
-              [ Link(
-                    "https://www.google.com",
-                    "",
-                    [ Image("https://www.google.com", "", "This is an image") ]
-                ) ]
-          ) ]
+        [ Paragraph([ Link("https://www.google.com", "", [ Image("https://www.google.com", "", "This is an image") ]) ]) ]
 
     Assert.That(actual, Is.EquivalentTo(expected))
 
 [<Test>]
 let ShouldParseImageInLinkWithTitle () =
     let content =
-        "[![This is an image with a title](https://www.google.com \"Google\")](https://www.google.com)".Split([| '\n' |])
+        "[![This is an image with a title](https://www.google.com \"Google\")](https://www.google.com)"
+            .Split([| '\n' |])
         |> List.ofArray
 
     let actual = parseMarkdown content
@@ -343,5 +340,43 @@ let ShouldParseImageInLinkWithTitle () =
                     [ Image("https://www.google.com", "Google", "This is an image with a title") ]
                 ) ]
           ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseEscapedCharacters () =
+    let content =
+        "This is some text with \\*escaped\\* \\\\ \\_ \\{ \\} \\[ \\] \\< \\> \\( \\) \\# \\+ \\- \\. \\! \\| characters"
+            .Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph([ Text("This is some text with *escaped* \\ _ { } [ ] &lt; &gt; ( ) # + - . ! | characters") ]) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldAllowHtml () =
+    let content =
+        "<p>This is some <strong>html</strong></p>".Split([| '\n' |]) |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected = [ Paragraph([ Text("<p>This is some <strong>html</strong></p>") ]) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldEncodeHtmlSpecialCharactersIfEscaped () =
+    let content =
+        "This is some text with \\<escaped\\> \\& \\\" \\' characters".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph([ Text("This is some text with &lt;escaped&gt; &amp; &quot; &apos; characters") ]) ]
 
     Assert.That(actual, Is.EquivalentTo(expected))
