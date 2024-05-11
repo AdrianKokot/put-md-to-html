@@ -55,6 +55,14 @@ let rec renderHtmlSeq (ast: MarkdownAST list) = seq {
     | MarkdownAST.LineBreak :: rest ->
         yield "<br>"
         yield! renderHtmlSeq rest
+    | MarkdownAST.Link(url, title, content) :: rest ->
+        if title = "" then
+            yield $"<a href=\"%s{url}\">"
+        else
+            yield $"<a href=\"%s{url}\" title=\"%s{title}\">"
+        yield! renderHtmlSeq content
+        yield "</a>"
+        yield! renderHtmlSeq rest
     | _ -> ()
 }
 

@@ -130,3 +130,155 @@ let ShouldParseInlineCodeWrappedInStrong () =
         [ Paragraph([ Text("This is some text with "); Strong([ InlineCode("inline code") ]) ]) ]
 
     Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseInlineCodeWrappedInStrongAndEmphasis () =
+    let content =
+        "This is some text with **`inline code`** and *`inline code2`*".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph(
+              [ Text("This is some text with ")
+                Strong([ InlineCode("inline code") ])
+                Text(" and ")
+                Emphasis([ InlineCode("inline code2") ]) ]
+          ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseLink () =
+    let content =
+        "[This is a link](https://www.google.com)".Split([| '\n' |]) |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph([ Link("https://www.google.com", "", [ Text("This is a link") ]) ]) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseLinkWithStrongAndEmphasis () =
+    let content =
+        "[This is a link with **strong** and *emphasis*](https://www.google.com)".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph(
+              [ Link(
+                    "https://www.google.com",
+                    "",
+                    [ Text("This is a link with ")
+                      Strong([ Text("strong") ])
+                      Text(" and ")
+                      Emphasis([ Text("emphasis") ]) ]
+                ) ]
+          ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseLinkWithInlineCode () =
+    let content =
+        "[This is a link with `inline code`](https://www.google.com)".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph(
+              [ Link(
+                    "https://www.google.com",
+                    "",
+                    [ Text("This is a link with "); InlineCode("inline code") ]
+                ) ]
+          ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseLinkWithStrongAndEmphasisAndInlineCode () =
+    let content =
+        "[This is a link with **strong** and *emphasis* and `inline code`](https://www.google.com)".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph(
+              [ Link(
+                    "https://www.google.com",
+                    "",
+                    [ Text("This is a link with ")
+                      Strong([ Text("strong") ])
+                      Text(" and ")
+                      Emphasis([ Text("emphasis") ])
+                      Text(" and ")
+                      InlineCode("inline code") ]
+                ) ]
+          ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseLinkWithStrongAndEmphasisAndInlineCodeInLinkText () =
+    let content =
+        "[This is a link with **strong** and *emphasis* and `inline code`](https://www.google.com)".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph(
+              [ Link(
+                    "https://www.google.com",
+                    "",
+                    [ Text("This is a link with ")
+                      Strong([ Text("strong") ])
+                      Text(" and ")
+                      Emphasis([ Text("emphasis") ])
+                      Text(" and ")
+                      InlineCode("inline code") ]
+                ) ]
+          ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+let ShouldParseLinkWithTitle () =
+    let content =
+        "[This is a link with a title](https://www.google.com \"Google\")".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph([ Link("https://www.google.com", "Google", [ Text("This is a link with a title") ]) ]) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+    
+let ShouldParseLinkWithTitleAndStrongAndEmphasis () =
+    let content =
+        "[This is a link with a title and **strong** and *emphasis*](https://www.google.com \"Google\")".Split([| '\n' |])
+        |> List.ofArray
+        
+    let actual = parseMarkdown content
+    
+    let expected =
+        [ Paragraph(
+              [ Link(
+                    "https://www.google.com",
+                    "Google",
+                    [ Text("This is a link with a title and ")
+                      Strong([ Text("strong") ])
+                      Text(" and ")
+                      Emphasis([ Text("emphasis") ]) ]
+                ) ]
+          ) ]
+        
+    Assert.That(actual, Is.EquivalentTo(expected))
