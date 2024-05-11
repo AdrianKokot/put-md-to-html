@@ -2,6 +2,14 @@
 
 open Microsoft.FSharp.Collections
 
+// TODO: Links
+// TODO: Formatted links (emphasis/strong around link, code inside link)
+// TODO: Images
+// TODO: Escaping characters
+// TODO: Proper handling linebreaks
+// TODO: Refactor paragraphs (paragraph next to paragraph should be linebreak not 2 paragraphs unless there's blank line in between them)
+// TODO: Lists
+
 type MarkdownAST =
     | Header of int * MarkdownAST list
     | Paragraph of MarkdownAST list 
