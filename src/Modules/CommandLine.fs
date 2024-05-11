@@ -1,4 +1,4 @@
-﻿module modules.CommandLine
+﻿module MdToHtml.Modules.CommandLine
 
 type CommandLineOptions =
     { verbose: bool

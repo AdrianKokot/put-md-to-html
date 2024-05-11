@@ -9,10 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="MarkdownAST\Inline.fs" />
-    <Compile Include="MarkdownAST\Blockquote.fs" />
-    <Compile Include="MarkdownAST\CodeBlock.fs" />
-    <Compile Include="MarkdownAST\HorizontalRule.fs" />
+    <Compile Include="Markdown\Inline.fs" />
+    <Compile Include="Markdown\Blockquote.fs" />
+    <Compile Include="Markdown\CodeBlock.fs" />
+    <Compile Include="Markdown\HorizontalRule.fs" />
     <Compile Include="Html\Inline.fs" />
     <Compile Include="Html\Block.fs" />
   </ItemGroup>

@@ -1,7 +1,7 @@
-﻿module MdToHtml.Tests.MarkdownAST.Blockquote
+﻿module MdToHtml.Tests.Markdown.Blockquote
 
 open NUnit.Framework
-open modules.MarkdownParser
+open MdToHtml.Modules.MarkdownParser
 
 [<SetUp>]
 let Setup () =

@@ -1,4 +1,4 @@
-﻿module modules.MarkdownParser
+﻿module MdToHtml.Modules.MarkdownParser
 
 open Microsoft.FSharp.Collections
 

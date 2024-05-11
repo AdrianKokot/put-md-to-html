@@ -1,7 +1,7 @@
-﻿module MdToHtml.Tests.MarkdownAST.HorizontalRule
+﻿module MdToHtml.Tests.Markdown.HorizontalRule
 
 open NUnit.Framework
-open modules.MarkdownParser
+open MdToHtml.Modules.MarkdownParser
 
 [<SetUp>]
 let Setup () =

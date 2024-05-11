@@ -1,9 +1,9 @@
-﻿module Program
+﻿module MdToHtml.Program
 
-open modules.HtmlRenderer
-open modules.CommandLine
-open modules.ContentReader
-open modules.MarkdownParser
+open MdToHtml.Modules.HtmlRenderer
+open MdToHtml.Modules.CommandLine
+open MdToHtml.Modules.ContentReader
+open MdToHtml.Modules.MarkdownParser
 
 [<EntryPoint>]
 let main argv =

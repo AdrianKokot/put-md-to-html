@@ -1,7 +1,7 @@
-﻿module modules.HtmlRenderer
+﻿module MdToHtml.Modules.HtmlRenderer
 
-open modules.CommandLine
-open modules.MarkdownParser
+open MdToHtml.Modules.CommandLine
+open MdToHtml.Modules.MarkdownParser
 
 let CSS = System.IO.File.ReadAllText("assets/style.css")
 

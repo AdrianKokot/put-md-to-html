@@ -1,8 +1,8 @@
 ﻿module MdToHtml.Tests.Html.Inline
 
 open NUnit.Framework
-open modules.MarkdownParser
-open modules.HtmlRenderer
+open MdToHtml.Modules.MarkdownParser
+open MdToHtml.Modules.HtmlRenderer
 
 [<Test>]
 let ShouldRenderEmphasis () =

@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="modules\MarkdownParser.fs" />
-    <Compile Include="modules/CommandLine.fs" />
-    <Compile Include="modules/ContentReader.fs" />
-    <Compile Include="modules\HtmlRenderer.fs" />
+    <Compile Include="Modules\MarkdownParser.fs" />
+    <Compile Include="Modules\CommandLine.fs" />
+    <Compile Include="Modules\ContentReader.fs" />
+    <Compile Include="Modules\HtmlRenderer.fs" />
     <Compile Include="Program.fs" />
     <Content Include="assets\style.css" />
   </ItemGroup>

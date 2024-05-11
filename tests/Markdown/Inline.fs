@@ -1,7 +1,7 @@
-module MdToHtml.Tests.MarkdownAST.Inline
+module MdToHtml.Tests.Markdown.Inline
 
 open NUnit.Framework
-open modules.MarkdownParser
+open MdToHtml.Modules.MarkdownParser
 
 [<SetUp>]
 let Setup () = ()

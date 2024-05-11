@@ -1,6 +1,6 @@
-﻿module modules.ContentReader
+﻿module MdToHtml.Modules.ContentReader
 
-open modules.CommandLine
+open MdToHtml.Modules.CommandLine
 open System
 open System.IO
 
