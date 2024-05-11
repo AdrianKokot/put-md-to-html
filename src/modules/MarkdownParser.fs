@@ -10,6 +10,8 @@ type MarkdownAST =
     | BlockQuote of MarkdownAST list
     | Text of string
     | LineBreak
+    | CodeBlock of string * string list
+    | InlineCode of string
 
 let (|WrappedWith|_|) (starts:string, ends:string) (text:string) =
     if text.StartsWith(starts) then
@@ -52,6 +54,33 @@ let (|BlockQuote|_|) (lines: string list) =
                         
             loop mdQuote []
         else None
+        
+let (|CodeBlock|_|) (lines: string list) =
+    match lines with
+    | [] -> None
+    | line :: rest ->
+        if line.StartsWith("```") then
+            let lang = line.Substring(3)
+            
+            let rec loop (lines: string list) (acc: string list) = 
+                match lines with
+                | [] -> Some(acc |> List.rev, lang, [])
+                | line :: rest ->
+                    if line.StartsWith("```") then
+                        Some(acc |> List.rev, lang, rest)
+                    else
+                        loop rest (line :: acc)
+                        
+            loop rest []
+        else None
+        
+let (|InlineCode|_|) (line: char list) =
+    match line with
+    | '`'::_ ->
+        match line |> Array.ofList |> System.String.Concat with
+        | WrappedWith("`", "`") (wrapped, rest) -> Some(wrapped, rest.ToCharArray() |> List.ofArray)
+        | _ -> None
+    | _ -> None
 
 let (|Strong|_|) (line: char list) =
     match line with
@@ -96,6 +125,10 @@ let rec parseChars (line: char list) (acc: char list) = seq {
         yield! parseCharsAcc acc
         yield Emphasis(parseChars wrapped [] |> List.ofSeq)
         yield! parseChars rest []
+    | InlineCode(wrapped, rest) ->
+        yield! parseCharsAcc acc
+        yield InlineCode(wrapped)
+        yield! parseChars rest []
     | c::rest ->
         yield! parseChars rest (c::acc)
 }    
@@ -111,6 +144,9 @@ let rec parseBlocks (lines: string list) = seq {
         yield! parseBlocks(rest)
     | BlockQuote(quoted, rest) ->
         yield BlockQuote(parseBlocks quoted |> List.ofSeq)
+        yield! parseBlocks(rest)
+    | CodeBlock(code, lang, rest) ->
+        yield CodeBlock(lang, code)
         yield! parseBlocks(rest)
     | line :: rest ->
         yield Paragraph(parseBlock line)

@@ -9,8 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="IntlineTests.fs" />
-    <Compile Include="BlockquoteTests.fs" />
+    <Compile Include="Inline.fs" />
+    <Compile Include="Blockquote.fs" />
+    <Compile Include="CodeBlock.fs" />
   </ItemGroup>
 
   <ItemGroup>
