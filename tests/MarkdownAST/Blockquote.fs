@@ -1,4 +1,4 @@
-﻿module MdToHtml.Tests.Blockquote
+﻿module MdToHtml.Tests.MarkdownAST.Blockquote
 
 open NUnit.Framework
 open modules.MarkdownParser

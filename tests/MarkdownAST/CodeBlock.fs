@@ -1,4 +1,4 @@
-﻿module MdToHtml.Tests.CodeBlock
+﻿module MdToHtml.Tests.MarkdownAST.CodeBlock
 
 open NUnit.Framework
 open modules.MarkdownParser

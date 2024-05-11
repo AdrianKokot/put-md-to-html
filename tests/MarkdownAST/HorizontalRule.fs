@@ -1,4 +1,4 @@
-﻿module MdToHtml.Tests.HorizontalRule
+﻿module MdToHtml.Tests.MarkdownAST.HorizontalRule
 
 open NUnit.Framework
 open modules.MarkdownParser

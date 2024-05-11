@@ -1,4 +1,4 @@
-module MdToHtml.Tests.Inline
+module MdToHtml.Tests.MarkdownAST.Inline
 
 open NUnit.Framework
 open modules.MarkdownParser
