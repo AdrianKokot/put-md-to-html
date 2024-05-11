@@ -282,3 +282,66 @@ let ShouldParseLinkWithTitleAndStrongAndEmphasis () =
           ) ]
         
     Assert.That(actual, Is.EquivalentTo(expected))
+    
+[<Test>]
+let ShouldParseImage () =
+    let content =
+        "![This is an image](https://www.google.com)".Split([| '\n' |]) |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph([ Image("https://www.google.com", "", "This is an image") ]) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseImageWithTitle () =
+    let content =
+        "![This is an image with a title](https://www.google.com \"Google\")".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph([ Image("https://www.google.com", "Google", "This is an image with a title") ]) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseImageInLink () =
+    let content =
+        "[![This is an image](https://www.google.com)](https://www.google.com)".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph(
+              [ Link(
+                    "https://www.google.com",
+                    "",
+                    [ Image("https://www.google.com", "", "This is an image") ]
+                ) ]
+          ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseImageInLinkWithTitle () =
+    let content =
+        "[![This is an image with a title](https://www.google.com \"Google\")](https://www.google.com)".Split([| '\n' |])
+        |> List.ofArray
+
+    let actual = parseMarkdown content
+
+    let expected =
+        [ Paragraph(
+              [ Link(
+                    "https://www.google.com",
+                    "",
+                    [ Image("https://www.google.com", "Google", "This is an image with a title") ]
+                ) ]
+          ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))

@@ -2,7 +2,6 @@
 
 open Microsoft.FSharp.Collections
 
-// TODO: Images
 // TODO: Escaping characters
 // TODO: Proper handling linebreaks
 // TODO: Refactor paragraphs (paragraph next to paragraph should be linebreak not 2 paragraphs unless there's blank line in between them)
@@ -20,24 +19,50 @@ type MarkdownAST =
     | InlineCode of string
     | HorizontalRule
     | Link of string * string * MarkdownAST list
+    | Image of string * string * string
 
 let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
     if text.StartsWith(starts) then
-        let id = text.IndexOf(ends, starts.Length)
-
-        if id >= 0 then
-            let wrapped = text.Substring(starts.Length, id - starts.Length)
-            let rest = text.Substring(id + ends.Length, text.Length - id - ends.Length)
-            Some(wrapped, rest)
+        
+        if starts = ends then
+            let id = text.IndexOf(starts, starts.Length)
+            
+            if id >= 0 then
+            
+                let wrapped = text.Substring(starts.Length, id - starts.Length)
+                let rest = text.Substring(id + starts.Length, text.Length - id - starts.Length)
+                Some(wrapped, rest)
+            else
+                None
         else
-            None
+            let nextStart = text.IndexOf(starts, starts.Length)
+            
+            if nextStart >= 0 then
+  
+                let id = text.LastIndexOf(ends, text.Length - 1, text.Length - nextStart - 1)
+                
+                if id >= 0 then
+                    let wrapped = text.Substring(starts.Length, id - starts.Length)
+                    let rest = text.Substring(id + ends.Length, text.Length - id - ends.Length)
+                    Some(wrapped, rest)
+                else
+                    None
+            else
+                let id = text.LastIndexOf(ends)
+                
+                if id >= 0 then
+                    let wrapped = text.Substring(starts.Length, id - starts.Length)
+                    let rest = text.Substring(id + ends.Length, text.Length - id - ends.Length)
+                    Some(wrapped, rest)
+                else
+                    None
     else
         None
 
 let (|StartsWithRepeated|_|) (repeated: string) (text: string) =
     let rec loop i =
         if i = text.Length then i
-        elif text.[i] <> repeated.[i % repeated.Length] then i
+        elif text[i] <> repeated.[i % repeated.Length] then i
         else loop (i + 1)
 
     let n = loop 0
@@ -49,7 +74,7 @@ let (|StartsWithRepeated|_|) (repeated: string) (text: string) =
 
 let (|Heading|_|) (line: string) =
     match line with
-    | StartsWithRepeated ("#") (level, text) -> Some(level, text.Substring(1))
+    | StartsWithRepeated "#" (level, text) -> Some(level, text.Substring(1))
     | _ -> None
 
 let (|BlockQuote|_|) (lines: string list) =
@@ -92,9 +117,9 @@ let (|CodeBlock|_|) (lines: string list) =
 
 let (|HorizontalRule|_|) (line: string) =
     match line with
-    | StartsWithRepeated ("-") (amount, _)
-    | StartsWithRepeated ("*") (amount, _)
-    | StartsWithRepeated ("_") (amount, _) -> if amount >= 3 then Some() else None
+    | StartsWithRepeated "-" (amount, _)
+    | StartsWithRepeated "*" (amount, _)
+    | StartsWithRepeated "_" (amount, _) -> if amount >= 3 then Some() else None
     | _ -> None
 
 let (|InlineCode|_|) (line: char list) =
@@ -124,7 +149,34 @@ let (|Link|_|) (line: char list) =
             match rest with
             | WrappedWith ("(", ")") (urlAndTitle, rest) ->
                 match urlAndTitle.Split(" ", 2) with
-                | [| url; title |] -> Some(wrapped.ToCharArray() |> List.ofArray, url, title.Trim([| '"' |]), rest.ToCharArray() |> List.ofArray)
+                | [| url; title |] ->
+                    Some(
+                        wrapped.ToCharArray() |> List.ofArray,
+                        url,
+                        title.Trim([| '"' |]),
+                        rest.ToCharArray() |> List.ofArray
+                    )
+                | [| url |] -> Some(wrapped.ToCharArray() |> List.ofArray, url, "", rest.ToCharArray() |> List.ofArray)
+                | _ -> None
+            | _ -> None
+        | _ -> None
+    | _ -> None
+
+let (|Image|_|) (line: char list) =
+    match line with
+    | '!' :: '[' :: _ ->
+        match line |> Array.ofList |> System.String.Concat with
+        | WrappedWith ("![", "]") (wrapped, rest) ->
+            match rest with
+            | WrappedWith ("(", ")") (pathAndTitle, rest) ->
+                match pathAndTitle.Split(" ", 2) with
+                | [| path; title |] ->
+                    Some(
+                        wrapped.ToCharArray() |> List.ofArray,
+                        path,
+                        title.Trim([| '"' |]),
+                        rest.ToCharArray() |> List.ofArray
+                    )
                 | [| url |] -> Some(wrapped.ToCharArray() |> List.ofArray, url, "", rest.ToCharArray() |> List.ofArray)
                 | _ -> None
             | _ -> None
@@ -169,6 +221,10 @@ let rec parseChars (line: char list) (acc: char list) =
             yield! parseCharsAcc acc
             yield Link(url, title, parseChars wrapped [] |> List.ofSeq)
             yield! parseChars rest []
+        | Image(alt, path, title, rest) ->
+            yield! parseCharsAcc acc
+            yield Image(path, title, alt |> System.String.Concat)
+            yield! parseChars rest []
         | InlineCode(wrapped, rest) ->
             yield! parseCharsAcc acc
             yield InlineCode(wrapped)
@@ -185,19 +241,19 @@ let rec parseBlocks (lines: string list) =
         | [] -> ()
         | HorizontalRule :: rest ->
             yield HorizontalRule
-            yield! parseBlocks (rest)
+            yield! parseBlocks rest
         | CodeBlock(code, lang, rest) ->
             yield CodeBlock(lang, code)
-            yield! parseBlocks (rest)
+            yield! parseBlocks rest
         | BlockQuote(quoted, rest) ->
             yield BlockQuote(parseBlocks quoted |> List.ofSeq)
-            yield! parseBlocks (rest)
+            yield! parseBlocks rest
         | Heading(level, text) :: rest ->
             yield Header(level, parseBlock text)
-            yield! parseBlocks (rest)
+            yield! parseBlocks rest
         | line :: rest ->
             yield Paragraph(parseBlock line)
-            yield! parseBlocks (rest)
+            yield! parseBlocks rest
     }
 
-let parseMarkdown (lines: string list) = parseBlocks (lines) |> List.ofSeq
+let parseMarkdown (lines: string list) = lines |> parseBlocks |> List.ofSeq

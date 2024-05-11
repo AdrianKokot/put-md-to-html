@@ -103,3 +103,84 @@ let ShouldRenderLinkWithStrongAndEmphasisAndInlineCode () =
     let expected = "<a href=\"url\">content<strong>strong</strong> and <em>emphasis</em> and <code>code</code></a>"
 
     Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderImage () =
+    let content = [Image("path", "title", "alt")]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<img src=\"path\" title=\"title\" alt=\"alt\">"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderImageWithoutTitle () =
+    let content = [Image("path", "", "alt")]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<img src=\"path\" alt=\"alt\">"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderImageWithoutAlt () =
+    let content = [Image("path", "title", "")]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<img src=\"path\" title=\"title\">"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderImageWithoutTitleAndAlt () =
+    let content = [Image("path", "", "")]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<img src=\"path\">"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderLinkWithImage () =
+    let content = [Link("url", "title", [ Image("path", "title", "alt") ])]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<a href=\"url\" title=\"title\"><img src=\"path\" title=\"title\" alt=\"alt\"></a>"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderLinkWithImageWithoutTitle () =
+    let content = [Link("url", "title", [ Image("path", "", "alt") ])]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<a href=\"url\" title=\"title\"><img src=\"path\" alt=\"alt\"></a>"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderLinkWithImageWithoutAlt () =
+    let content = [Link("url", "title", [ Image("path", "title", "") ])]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<a href=\"url\" title=\"title\"><img src=\"path\" title=\"title\"></a>"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
+[<Test>]
+let ShouldRenderLinkWithImageWithoutTitleAndAlt () =
+    let content = [Link("url", "title", [ Image("path", "", "") ])]
+
+    let actual = renderHtmlBody content
+
+    let expected = "<a href=\"url\" title=\"title\"><img src=\"path\"></a>"
+
+    Assert.That(actual, Is.EqualTo(expected))
+
