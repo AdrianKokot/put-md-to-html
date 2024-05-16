@@ -1,17 +1,16 @@
 ﻿module MdToHtml.Modules.CommandLine
 
 type CommandLineOptions =
-    { verbose: bool
-      readFromFile: bool
+    { readFromFile: bool
       filePath: string
       inputText: string
       title: string}
 
+// TODO: Export to file
+
 let rec private _parseCommandLineArguments argv options =
     match argv with
     | [] -> options
-    | "-v" :: tail 
-    | "--verbose" :: tail -> _parseCommandLineArguments tail { options with verbose = true }
     
     | "-f" :: filePath :: tail
     | "--file" :: filePath :: tail ->
@@ -35,8 +34,7 @@ let rec private _parseCommandLineArguments argv options =
 let parseCommandLineArguments argv =
     _parseCommandLineArguments
         argv
-        { verbose = false
-          readFromFile = false
+        { readFromFile = false
           filePath = ""
           inputText = ""
           title = "Markdown Document"}

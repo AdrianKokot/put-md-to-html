@@ -3,7 +3,6 @@
 open System.Text.RegularExpressions
 open Microsoft.FSharp.Collections
 
-// TODO: Proper handling linebreaks
 // TODO: Refactor paragraphs (paragraph next to paragraph should be linebreak not 2 paragraphs unless there's blank line in between them)
 
 type MarkdownAST =
@@ -234,7 +233,7 @@ let (|Emphasis|_|) (line: char list) =
 
 let parseCharsAcc (acc: char list) =
     if acc.Length > 0 then
-        [ Text(new string (acc |> List.rev |> List.toArray)) ]
+        [ Text(acc |> List.rev |> System.String.Concat) ]
     else
         []
 
@@ -271,12 +270,10 @@ let rec parseChars (line: char list) (acc: char list) =
     seq {
         match line with
         | [] -> yield! parseCharsAcc acc
-        // | '\r' :: '\n' :: rest
-        // | ('\n' | '\r') :: rest
-        // | ' ' :: ' ' :: '\r' :: '\n' :: rest
-        // | ' ' :: ' ' :: ('\n' | '\r') :: rest ->
-        //     yield LineBreak
-        //     yield! parseChars rest []
+        | ' ' :: ' ' :: [ '\r' ]
+        | ' ' :: [ ' ' ] ->
+            yield! parseCharsAcc acc
+            yield LineBreak
         | '\\' :: EscapableChar(char) :: rest -> yield! parseChars rest (char :: acc)
         | '\\' :: HtmlEntity(chars) :: rest -> yield! parseChars rest (chars @ acc)
         | Strong(wrapped, rest) ->

@@ -380,3 +380,13 @@ let ShouldEncodeHtmlSpecialCharactersIfEscaped () =
         [ Paragraph([ Text("This is some text with &lt;escaped&gt; &amp; &quot; &apos; characters") ]) ]
 
     Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseLineBreak () =
+    let content = "This is some text with a line break  \nand some more text".Split([| '\n' |]) |> List.ofArray
+    
+    let actual = parseMarkdown content
+    
+    let expected = [ Paragraph([ Text("This is some text with a line break"); LineBreak]); Paragraph([Text("and some more text") ]) ]
+    
+    Assert.That(actual, Is.EquivalentTo(expected))
