@@ -27,7 +27,7 @@ let ShouldParseBlockQuote () =
 let ShouldParseBlockQuoteWithMultipleLines () =
     let content = "> This is a blockquote\n> with multiple lines".Split([| '\n' |]) |> List.ofArray
     let actual = parseMarkdown content
-    let expected = [BlockQuote([Paragraph([Text("This is a blockquote")]); Paragraph([Text("with multiple lines")])])]
+    let expected = [BlockQuote([Paragraph([Text("This is a blockquote"); Text("with multiple lines")])])]
     
     Assert.That(actual, Is.EquivalentTo(expected))
 

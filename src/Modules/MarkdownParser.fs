@@ -3,8 +3,6 @@
 open System.Text.RegularExpressions
 open Microsoft.FSharp.Collections
 
-// TODO: Refactor paragraphs (paragraph next to paragraph should be linebreak not 2 paragraphs unless there's blank line in between them)
-
 type MarkdownAST =
     | Header of int * MarkdownAST list
     | Paragraph of MarkdownAST list
@@ -22,6 +20,7 @@ type MarkdownAST =
     | UnorderedList of MarkdownAST list
     | OrderedList of MarkdownAST list
 
+// TODO: Refactor this method to accept a list of char instead of a string to avoid the conversion
 let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
     if text.StartsWith(starts) then
 
@@ -60,6 +59,7 @@ let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
     else
         None
 
+// TODO: Simplify this method
 let (|StartsWithRepeated|_|) (repeated: string) (text: string) =
     let rec loop i =
         if i = text.Length then i
@@ -116,13 +116,13 @@ let (|CodeBlock|_|) (lines: string list) =
         else
             None
 
-let (|List|_|) (listItemRegex: string) (lines: string list ) =
+let (|List|_|) (listItemRegex: string) (lines: string list) =
     let appendIfNotEmpty (acc: string list list) (currentListItemAcc: string list) =
         if currentListItemAcc.Length > 0 then
             (currentListItemAcc |> List.rev) :: acc
         else
             acc
-    
+
     match lines with
     | [] -> None
     | line :: _ as mdList when Regex.IsMatch(line, listItemRegex) ->
@@ -132,9 +132,9 @@ let (|List|_|) (listItemRegex: string) (lines: string list ) =
             | "" :: rest -> Some((appendIfNotEmpty acc currentListItemAcc) |> List.rev, rest)
             | line :: rest ->
                 let matches = Regex.Match(line, listItemRegex)
-                
+
                 if matches.Success then
-                    loop rest [line.Substring(matches.Length)] (appendIfNotEmpty acc currentListItemAcc)
+                    loop rest [ line.Substring(matches.Length) ] (appendIfNotEmpty acc currentListItemAcc)
                 else
                     loop rest (line.TrimStart() :: currentListItemAcc) acc
 
@@ -302,31 +302,44 @@ let rec parseChars (line: char list) (acc: char list) =
 let rec parseBlock (line: string) =
     parseChars (line.ToCharArray() |> List.ofArray) [] |> List.ofSeq
 
-let rec parseBlocks (lines: string list) =
+let parseBlocksAcc (acc: string list) =
+    if acc.Length > 0 then
+        [ Paragraph(acc |> List.rev |> List.map parseBlock |> List.concat) ]
+    else
+        []
+
+let rec parseBlocks (lines: string list) (acc: string list) =
     seq {
         match lines with
-        | [] -> ()
         | HorizontalRule :: rest ->
+            yield! parseBlocksAcc acc
             yield HorizontalRule
-            yield! parseBlocks rest
+            yield! parseBlocks rest []
         | CodeBlock(code, lang, rest) ->
+            yield! parseBlocksAcc acc
             yield CodeBlock(lang, code)
-            yield! parseBlocks rest
+            yield! parseBlocks rest []
         | BlockQuote(quoted, rest) ->
-            yield BlockQuote(parseBlocks quoted |> List.ofSeq)
-            yield! parseBlocks rest
+            yield! parseBlocksAcc acc
+            yield BlockQuote(parseBlocks quoted [] |> List.ofSeq)
+            yield! parseBlocks rest []
         | Heading(level, text) :: rest ->
+            yield! parseBlocksAcc acc
             yield Header(level, parseBlock text)
-            yield! parseBlocks rest
+            yield! parseBlocks rest []
         | OrderedList(list, rest) ->
-            yield OrderedList(list |> List.map (fun a -> ListItem(a |> parseBlocks |> List.ofSeq)))
-            yield! parseBlocks rest
+            yield! parseBlocksAcc acc
+            yield OrderedList(list |> List.map (fun a -> ListItem(parseBlocks a [] |> List.ofSeq)))
+            yield! parseBlocks rest []
         | UnorderedList(list, rest) ->
-            yield UnorderedList(list |> List.map (fun a -> ListItem(a |> parseBlocks |> List.ofSeq)))
-            yield! parseBlocks rest
-        | line :: rest ->
-            yield Paragraph(parseBlock line)
-            yield! parseBlocks rest
+            yield! parseBlocksAcc acc
+            yield UnorderedList(list |> List.map (fun a -> ListItem(parseBlocks a [] |> List.ofSeq)))
+            yield! parseBlocks rest []
+        | ("" | "\r") :: rest ->
+            yield! parseBlocksAcc acc
+            yield! parseBlocks rest []
+        | line :: rest -> yield! parseBlocks rest (line :: acc)
+        | [] -> yield! parseBlocksAcc acc
     }
 
-let parseMarkdown (lines: string list) = lines |> parseBlocks |> List.ofSeq
+let parseMarkdown (lines: string list) = parseBlocks lines [] |> List.ofSeq

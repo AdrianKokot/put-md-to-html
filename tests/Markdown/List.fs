@@ -40,7 +40,7 @@ let ShouldParseOrderedListWithItemsOnMultipleLines () =
 
     let expected =
         [ OrderedList(
-              [ ListItem([ Paragraph([ Text("First") ]); Paragraph([ Text("Second") ]) ])
+              [ ListItem([ Paragraph([ Text("First"); Text("Second") ]) ])
                 ListItem([ Paragraph([ Text("Next item") ]) ]) ]
           ) ]
 
@@ -93,19 +93,25 @@ let ShouldParseOrderedListWithMultipleLineListItemsAndWithNestedOrderedListWithM
     let expected =
         [ OrderedList(
               [ ListItem(
-                    [ Paragraph([ Text("First List Item") ])
-                      Paragraph([ Text("First List Item Second Line") ])
-                      Paragraph([ Text("First List Item Third Line") ])
+                    [ Paragraph(
+                          [ Text("First List Item")
+                            Text("First List Item Second Line")
+                            Text("First List Item Third Line") ]
+                      )
                       OrderedList(
                           [ ListItem(
-                                [ Paragraph([ Text("First List Item Nested List First Item") ])
-                                  Paragraph([ Text("First List Item Nested List First Item Second Line") ])
-                                  Paragraph([ Text("First List Item Nested List First Item Third Line") ]) ]
+                                [ Paragraph(
+                                      [ Text("First List Item Nested List First Item")
+                                        Text("First List Item Nested List First Item Second Line")
+                                        Text("First List Item Nested List First Item Third Line") ]
+                                  ) ]
                             )
                             ListItem(
-                                [ Paragraph([ Text("First List Item Nested List Second Item") ])
-                                  Paragraph([ Text("First List Item Nested List Second Item Second Line") ])
-                                  Paragraph([ Text("First List Item Nested List Second Item Third Line") ]) ]
+                                [ Paragraph(
+                                      [ Text("First List Item Nested List Second Item")
+                                        Text("First List Item Nested List Second Item Second Line")
+                                        Text("First List Item Nested List Second Item Third Line") ]
+                                  ) ]
                             ) ]
                       ) ]
                 ) ]
@@ -147,7 +153,7 @@ let ShouldParseUnorderedListWithItemsOnMultipleLines () =
 
     let expected =
         [ UnorderedList(
-              [ ListItem([ Paragraph([ Text("First") ]); Paragraph([ Text("Second") ]) ])
+              [ ListItem([ Paragraph([ Text("First"); Text("Second") ]) ])
                 ListItem([ Paragraph([ Text("Next item") ]) ]) ]
           ) ]
 
@@ -199,19 +205,25 @@ let ShouldParseUnorderedListWithMultipleLineListItemsAndWithNestedUnorderedListW
     let expected =
         [ UnorderedList(
               [ ListItem(
-                    [ Paragraph([ Text("First List Item") ])
-                      Paragraph([ Text("First List Item Second Line") ])
-                      Paragraph([ Text("First List Item Third Line") ])
+                    [ Paragraph(
+                          [ Text("First List Item")
+                            Text("First List Item Second Line")
+                            Text("First List Item Third Line") ]
+                      )
                       UnorderedList(
                           [ ListItem(
-                                [ Paragraph([ Text("First List Item Nested List First Item") ])
-                                  Paragraph([ Text("First List Item Nested List First Item Second Line") ])
-                                  Paragraph([ Text("First List Item Nested List First Item Third Line") ]) ]
+                                [ Paragraph(
+                                      [ Text("First List Item Nested List First Item")
+                                        Text("First List Item Nested List First Item Second Line")
+                                        Text("First List Item Nested List First Item Third Line") ]
+                                  ) ]
                             )
                             ListItem(
-                                [ Paragraph([ Text("First List Item Nested List Second Item") ])
-                                  Paragraph([ Text("First List Item Nested List Second Item Second Line") ])
-                                  Paragraph([ Text("First List Item Nested List Second Item Third Line") ]) ]
+                                [ Paragraph(
+                                      [ Text("First List Item Nested List Second Item")
+                                        Text("First List Item Nested List Second Item Second Line")
+                                        Text("First List Item Nested List Second Item Third Line") ]
+                                  ) ]
                             ) ]
                       ) ]
                 ) ]

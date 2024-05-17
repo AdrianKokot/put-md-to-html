@@ -6,7 +6,7 @@ type CommandLineOptions =
       inputText: string
       title: string}
 
-// TODO: Export to file
+// TODO: Add command that will export to file instead of printing to standard output
 
 let rec private _parseCommandLineArguments argv options =
     match argv with

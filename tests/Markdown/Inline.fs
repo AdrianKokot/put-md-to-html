@@ -387,6 +387,6 @@ let ShouldParseLineBreak () =
     
     let actual = parseMarkdown content
     
-    let expected = [ Paragraph([ Text("This is some text with a line break"); LineBreak]); Paragraph([Text("and some more text") ]) ]
+    let expected = [ Paragraph([ Text("This is some text with a line break"); LineBreak; Text("and some more text") ]) ]
     
     Assert.That(actual, Is.EquivalentTo(expected))
