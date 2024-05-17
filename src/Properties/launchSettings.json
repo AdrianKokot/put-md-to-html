@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MdToHtml": {
+      "commandName": "Project",
+      "commandLineArgs": "-f \"../../../sample/input.md\" -t \"Sample Document\" -o \"../../../sample/output.html\""
+    }
+  }
+}

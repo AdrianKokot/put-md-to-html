@@ -3,7 +3,7 @@
 open MdToHtml.Modules.CommandLine
 open MdToHtml.Modules.MarkdownParser
 
-let CSS = System.IO.File.ReadAllText("assets/style.css")
+let CSS = System.IO.File.ReadAllText("../../../assets/style.css")
 
 let HTML_HEADER =
     sprintf "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style>%s</style><title>%s</title></head><body>" CSS
