@@ -21,43 +21,48 @@ type MarkdownAST =
     | OrderedList of MarkdownAST list
 
 // TODO: Refactor this method to accept a list of char instead of a string to avoid the conversion
-let (|WrappedWith|_|) (starts: string, ends: string) (text: string) =
-    if text.StartsWith(starts) then
-
-        if starts = ends then
-            let id = text.IndexOf(starts, starts.Length)
-
+let (|WrappedWith|_|) (starts: List<char>, ends: List<char>) (text: List<char>) =
+    let startsString = new System.String(starts |> List.toArray)
+    let endsString = new System.String(ends |> List.toArray)
+    let textString = new System.String(text |> List.toArray)
+    
+    if textString.StartsWith(startsString) then
+        let startsLength = starts.Length
+        let endsLength = ends.Length
+        
+        if startsString = endsString then
+            let id = textString.IndexOf(startsString, startsLength)
+            
             if id >= 0 then
-
-                let wrapped = text.Substring(starts.Length, id - starts.Length)
-                let rest = text.Substring(id + starts.Length, text.Length - id - starts.Length)
+                let wrapped = textString.Substring(startsLength, id - startsLength) |> Seq.toList
+                let rest = textString.Substring(id + startsLength, textString.Length - id - startsLength) |> Seq.toList
                 Some(wrapped, rest)
             else
                 None
         else
-            let nextStart = text.IndexOf(starts, starts.Length)
-
+            let nextStart = textString.IndexOf(startsString, startsLength)
+            
             if nextStart >= 0 then
-
-                let id = text.LastIndexOf(ends, text.Length - 1, text.Length - nextStart - 1)
-
+                let id = textString.LastIndexOf(endsString, textString.Length - 1, textString.Length - nextStart - 1)
+                
                 if id >= 0 then
-                    let wrapped = text.Substring(starts.Length, id - starts.Length)
-                    let rest = text.Substring(id + ends.Length, text.Length - id - ends.Length)
+                    let wrapped = textString.Substring(startsLength, id - startsLength) |> Seq.toList
+                    let rest = textString.Substring(id + endsLength, textString.Length - id - endsLength) |> Seq.toList
                     Some(wrapped, rest)
                 else
                     None
             else
-                let id = text.LastIndexOf(ends)
-
+                let id = textString.LastIndexOf(endsString)
+                
                 if id >= 0 then
-                    let wrapped = text.Substring(starts.Length, id - starts.Length)
-                    let rest = text.Substring(id + ends.Length, text.Length - id - ends.Length)
+                    let wrapped = textString.Substring(startsLength, id - startsLength) |> Seq.toList
+                    let rest = textString.Substring(id + endsLength, textString.Length - id - endsLength) |> Seq.toList
                     Some(wrapped, rest)
                 else
                     None
     else
         None
+
 
 // TODO: Simplify this method
 let (|StartsWithRepeated|_|) (repeated: string) (text: string) =
@@ -161,59 +166,64 @@ let (|HorizontalRule|_|) (line: string) =
 let (|InlineCode|_|) (line: char list) =
     match line with
     | '`' :: _ ->
-        match line |> Array.ofList |> System.String.Concat with
-        | WrappedWith ("`", "`") (wrapped, rest) -> Some(wrapped, rest.ToCharArray() |> List.ofArray)
+        match line with
+        | WrappedWith (['`'], ['`']) (wrapped, rest) -> Some(wrapped, rest)
         | _ -> None
     | _ -> None
+
 
 let (|Strong|_|) (line: char list) =
     match line with
     | '*' :: '*' :: _
     | '_' :: '_' :: _ ->
-        match line |> Array.ofList |> System.String.Concat with
-        | WrappedWith ("**", "**") (wrapped, rest)
-        | WrappedWith ("__", "__") (wrapped, rest) ->
-            Some(wrapped.ToCharArray() |> List.ofArray, rest.ToCharArray() |> List.ofArray)
-        | _ -> None
-    | _ -> None
-
-let (|Link|_|) (line: char list) =
-    match line with
-    | '[' :: _ ->
-        match line |> Array.ofList |> System.String.Concat with
-        | WrappedWith ("[", "]") (wrapped, rest) ->
-            match rest with
-            | WrappedWith ("(", ")") (urlAndTitle, rest) ->
-                match urlAndTitle.Split(" ", 2) with
-                | [| url; title |] ->
-                    Some(
-                        wrapped.ToCharArray() |> List.ofArray,
-                        url,
-                        title.Trim([| '"' |]),
-                        rest.ToCharArray() |> List.ofArray
-                    )
-                | [| url |] -> Some(wrapped.ToCharArray() |> List.ofArray, url, "", rest.ToCharArray() |> List.ofArray)
-                | _ -> None
-            | _ -> None
+        match line  with
+        | WrappedWith (['*'; '*'], ['*'; '*']) (wrapped, rest)
+        | WrappedWith (['_'; '_'], ['*'; '*']) (wrapped, rest) ->
+            Some(wrapped , rest)
         | _ -> None
     | _ -> None
 
 let (|Image|_|) (line: char list) =
     match line with
     | '!' :: '[' :: _ ->
-        match line |> Array.ofList |> System.String.Concat with
-        | WrappedWith ("![", "]") (wrapped, rest) ->
+        match line with
+        | WrappedWith (['!'; '['], [']']) (wrapped, rest) ->
             match rest with
-            | WrappedWith ("(", ")") (pathAndTitle, rest) ->
-                match pathAndTitle.Split(" ", 2) with
+            | WrappedWith (['('], [')']) (pathAndTitle, rest) ->
+                let pathAndTitleStr = pathAndTitle |> List.toArray |> System.String.Concat
+                let parts = pathAndTitleStr.Split([| ' ' |], 2)
+                match parts with
                 | [| path; title |] ->
                     Some(
-                        wrapped.ToCharArray() |> List.ofArray,
+                        wrapped,
                         path,
                         title.Trim([| '"' |]),
-                        rest.ToCharArray() |> List.ofArray
+                        rest
                     )
-                | [| url |] -> Some(wrapped.ToCharArray() |> List.ofArray, url, "", rest.ToCharArray() |> List.ofArray)
+                | [| path |] -> Some(wrapped, path, "", rest)
+                | _ -> None
+            | _ -> None
+        | _ -> None
+    | _ -> None
+
+let (|Link|_|) (line: char list) =
+    match line with
+    | '[' :: _ ->
+        match line with
+        | WrappedWith (['['], [']']) (wrapped, rest) ->
+            match rest with
+            | WrappedWith (['('], [')']) (urlAndTitle, rest) ->
+                let urlAndTitleStr = urlAndTitle |> Array.ofList |> System.String.Concat
+                let parts = urlAndTitleStr.Split([| ' ' |], 2)
+                match parts with
+                | [| url; title |] ->
+                    Some(
+                        wrapped,
+                        url,
+                        title.Trim([| '"' |]),
+                        rest
+                    )
+                | [| url |] -> Some(wrapped, url, "", rest)
                 | _ -> None
             | _ -> None
         | _ -> None
@@ -223,10 +233,10 @@ let (|Emphasis|_|) (line: char list) =
     match line with
     | '*' :: _
     | '_' :: _ ->
-        match line |> Array.ofList |> System.String.Concat with
-        | WrappedWith ("*", "*") (wrapped, rest)
-        | WrappedWith ("_", "_") (wrapped, rest) ->
-            Some(wrapped.ToCharArray() |> List.ofArray, rest.ToCharArray() |> List.ofArray)
+        match line with
+        | WrappedWith (['*'], ['*']) (wrapped, rest)
+        | WrappedWith (['_'], ['_']) (wrapped, rest) ->
+            Some(wrapped, rest)
         | _ -> None
     | _ -> None
 
@@ -294,7 +304,7 @@ let rec parseChars (line: char list) (acc: char list) =
             yield! parseChars rest []
         | InlineCode(wrapped, rest) ->
             yield! parseCharsAcc acc
-            yield InlineCode(wrapped)
+            yield InlineCode(wrapped|> List.toArray |> System.String.Concat)
             yield! parseChars rest []
         | c :: rest -> yield! parseChars rest (c :: acc)
     }
