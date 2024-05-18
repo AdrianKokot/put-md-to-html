@@ -47,7 +47,6 @@ let takeUntil (endSequence: char list) (lst: char list) =
         | x::xs -> helper (x::acc) xs endSequence
     helper [] lst endSequence
 
-// TODO: Refactor this method to accept a list of char instead of a string to avoid the conversion
 let (|WrappedWith|_|) (starts: char list, ends: char list) (text: char list) =
     let startsLength = List.length starts
     let endsLength = List.length ends
@@ -68,20 +67,21 @@ let (|WrappedWith|_|) (starts: char list, ends: char list) (text: char list) =
         None
 
 
-
-// TODO: Simplify this method
 let (|StartsWithRepeated|_|) (repeated: string) (text: string) =
-    let rec loop i =
-        if i = text.Length then i
-        elif text[i] <> repeated[i % repeated.Length] then i
-        else loop (i + 1)
+    let rec loop i count =
+        if i + repeated.Length > text.Length then
+            (count, i)
+        elif text.Substring(i, repeated.Length) = repeated then
+            loop (i + repeated.Length) (count + 1)
+        else
+            (count, i)
 
-    let n = loop 0
+    let (count, n) = loop 0 0
 
-    if n = 0 || n % repeated.Length <> 0 then
+    if count = 0 then
         None
     else
-        Some(n / repeated.Length, text.Substring(n, text.Length - n))
+        Some(count, text.Substring(n))
 
 let (|Heading|_|) (line: string) =
     match line with
