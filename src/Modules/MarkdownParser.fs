@@ -20,64 +20,53 @@ type MarkdownAST =
     | UnorderedList of MarkdownAST list
     | OrderedList of MarkdownAST list
 
-let rec startsWith (prefix: 'a list) (list: 'a list) =
-    match prefix, list with
-    | [], _ -> true 
-    | _, [] -> false
-    | x::xs, y::ys when x = y -> startsWith xs ys 
-    | _, _ -> false 
+
+let startsWith (prefix: char list) (lst: char list) =
+    let rec startsWithHelper prefixList list =
+        match prefixList, list with
+        | [], _ -> true
+        | _, [] -> false
+        | x::xs, y::ys when x = y -> startsWithHelper xs ys
+        | _ -> false
+    startsWithHelper prefix lst
+
+let containsSubsequence (subsequence: char list) (lst: char list) =
+    let subsequenceLength = List.length subsequence
+    let rec helper remaining =
+        match remaining with
+        | [] -> false
+        | _ when startsWith subsequence remaining -> true
+        | _::xs -> helper xs
+    helper lst
+
+let takeUntil (endSequence: char list) (lst: char list) =
+    let rec helper acc remaining endSequence =
+        match remaining with
+        | _ when startsWith endSequence remaining && not (containsSubsequence endSequence (List.tail remaining)) -> List.rev acc
+        | [] -> List.rev acc
+        | x::xs -> helper (x::acc) xs endSequence
+    helper [] lst endSequence
+
 // TODO: Refactor this method to accept a list of char instead of a string to avoid the conversion
 let (|WrappedWith|_|) (starts: char list, ends: char list) (text: char list) =
-    let rec indexOfSubList (lst: char list) (sub: char list) startIndex =
-        let rec indexOfSubListHelper (lst: char list) (sub: char list) index =
-            match (lst, sub) with
-            | _, [] -> Some index
-            | [], _ -> None
-            | x::xs, y::ys when x = y -> indexOfSubListHelper xs ys (index + 1)
-            | _::xs, _ -> indexOfSubListHelper xs sub (index + 1) 
-        indexOfSubListHelper (List.skip startIndex lst) sub startIndex
+    let startsLength = List.length starts
+    let endsLength = List.length ends
 
-    let rec lastIndexOfSubList (lst: char list) (sub: char list) =
-        let rec lastIndexOfSubListHelper (lst: char list) (sub: char list) index =
-            match lst with
-            | [] -> if sub = [] then Some index else None
-            | x::xs ->
-                match indexOfSubList (List.rev lst) (List.rev sub) 0 with
-                | Some pos -> Some (List.length lst - List.length sub - pos + index)
-                | None -> lastIndexOfSubListHelper xs sub (index + 1)
-        lastIndexOfSubListHelper lst sub 0
+    if text |> startsWith starts then
+        let contentAndRest = text |> List.skip startsLength
+        if List.length contentAndRest <> 0 then
 
-    match text with
-    | x::xs when List.length starts <= List.length text && starts = List.take (List.length starts) text ->
-
-        if starts = ends then
-            match indexOfSubList xs starts 0 with
-            | Some id ->
-                let wrapped = List.take (id - 1) xs
-                let rest = List.skip (id + List.length starts - 1) xs
-                Some(wrapped, rest)
-            | None -> None
+            let content = contentAndRest |> takeUntil ends
+            let rest = contentAndRest |> List.skip (List.length content + endsLength)
+            if contentAndRest |> startsWith (content @ ends) then
+                Some(content, rest)
+            else
+                None
         else
-            match indexOfSubList xs starts 0 with
-            | Some nextStart ->
-                match lastIndexOfSubList (List.skip (nextStart + List.length starts) text) ends with
-                | Some id ->
-                    let wrapped = List.take id (List.skip (List.length starts) xs)
-                    let rest = List.skip (id + List.length ends) (List.skip (nextStart + List.length starts) text)
-                    Some(wrapped, rest)
-                | None -> None
-            | None ->
-                match lastIndexOfSubList text ends with
-                | Some id ->
-                    let wrapped = List.take (id - List.length starts + 1) (List.skip (List.length starts) text)
-                    let rest =
-                        if List.length starts + id + List.length ends = List.length text then
-                            []
-                        else
-                            List.skip (List.length starts + id + List.length ends - 1) text
-                    Some(wrapped, rest)
-                | None -> None
-    | _ -> None
+             None
+    else
+        None
+
 
 
 // TODO: Simplify this method
