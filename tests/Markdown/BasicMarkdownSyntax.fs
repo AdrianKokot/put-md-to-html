@@ -164,3 +164,62 @@ let ShouldParseBlockQuoteWithOthers () =
     let expected = [BlockQuote [Header (4, [Text "The quarterly results look great!> "]); UnorderedList [ListItem [Paragraph [Text "Revenue was off the chart."]]; ListItem [Paragraph [Text "Profits were higher than ever."]]]; Paragraph [Emphasis [Text "Everything"]; Text " is going according to "; Strong [Text "plan"]; Text "."]]]
     
     Assert.That(actual, Is.EquivalentTo(expected))
+
+
+[<Test>]
+let ShouldParseOrderedList () =
+    let content = "1. First\n2. Second\n3. Third\n4. Fourth".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+
+    let expected =
+        [ OrderedList(
+              [ ListItem([ Paragraph([ Text("First") ]) ])
+                ListItem([ Paragraph([ Text("Second") ]) ]) 
+                ListItem([ Paragraph([ Text("Third") ]) ])
+                ListItem([ Paragraph([ Text("Fourth") ]) ])]
+          ) ]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseUnorderedListStars () =
+    let content = "* First\n* Second\n* Third\n* Fourth".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+
+    let expected =
+        [ UnorderedList(
+              [ ListItem([ Paragraph([ Text("First") ]) ])
+                ListItem([ Paragraph([ Text("Second") ]) ])
+                ListItem([ Paragraph([ Text("Third") ]) ])
+                ListItem([ Paragraph([ Text("Fourth") ]) ])])]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseUnorderedListMinus() =
+    let content = "- First\n- Second\n- Third\n- Fourth".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+
+    let expected =
+        [ UnorderedList(
+              [ ListItem([ Paragraph([ Text("First") ]) ])
+                ListItem([ Paragraph([ Text("Second") ]) ])
+                ListItem([ Paragraph([ Text("Third") ]) ])
+                ListItem([ Paragraph([ Text("Fourth") ]) ])])]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+
+[<Test>]
+let ShouldParseUnorderedListPlus() =
+    let content = "+ First\n+ Second\n+ Third\n+ Fourth".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+
+    let expected =
+        [ UnorderedList(
+              [ ListItem([ Paragraph([ Text("First") ]) ])
+                ListItem([ Paragraph([ Text("Second") ]) ])
+                ListItem([ Paragraph([ Text("Third") ]) ])
+                ListItem([ Paragraph([ Text("Fourth") ]) ])])]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
