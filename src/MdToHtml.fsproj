@@ -14,4 +14,9 @@
     <Content Include="assets\style.css" />
   </ItemGroup>
 
+  <ItemGroup>
+	<None Include="sample\output.html" />
+    <None Include="sample\input.md" />
+  </ItemGroup>
+	
 </Project>

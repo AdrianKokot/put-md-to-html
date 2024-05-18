@@ -4,9 +4,9 @@ type CommandLineOptions =
     { readFromFile: bool
       filePath: string
       inputText: string
-      title: string}
+      title: string
+      outputFilePath: string option}
 
-// TODO: Add command that will export to file instead of printing to standard output
 
 let rec private _parseCommandLineArguments argv options =
     match argv with
@@ -25,6 +25,12 @@ let rec private _parseCommandLineArguments argv options =
         _parseCommandLineArguments
             tail
             { options with title = title }
+
+    | "-o" :: outputFilePath :: tail
+    | "--output" :: outputFilePath :: tail ->
+        _parseCommandLineArguments
+            tail
+            { options with outputFilePath = Some outputFilePath }
         
     | unknown :: _ when unknown.StartsWith("-") -> failwithf "Unknown option: %s" unknown
     | [ text ] -> { options with inputText = text }
@@ -37,4 +43,5 @@ let parseCommandLineArguments argv =
         { readFromFile = false
           filePath = ""
           inputText = ""
-          title = "Markdown Document"}
+          title = "Markdown Document"
+          outputFilePath = None}
