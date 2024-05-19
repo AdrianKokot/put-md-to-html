@@ -1,1 +1,180 @@
-/* TODO: Add some basic styles to make makrdown file prettier */
+*, ::after, ::before {
+    box-sizing: border-box
+}
+
+html {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    -moz-tab-size: 4;
+    tab-size: 4;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    font-size: 16px;
+    word-wrap: break-word;
+    font-feature-settings: normal;
+    font-variation-settings: normal
+}
+
+:root {
+    --color-text: #24292f;
+    --color-hr: #57606a;
+    --color-background: #ffffff;
+    --color-code-bg: #f6f8fa;
+    --color-border: #d0d7de;
+    --color-accent: #0969da;
+}
+
+body {
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    margin: 0;
+    color: var(--color-text);
+    background-color: var(--color-background);
+    padding: 2.5rem;
+}
+
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+    background-color: transparent;
+}
+
+a:hover {
+    text-decoration: underline
+}
+
+a:not([href]), a:not([href]):hover {
+    color: inherit;
+    text-decoration: none
+}
+
+hr {
+    box-sizing: content-box;
+    overflow: hidden;
+    height: .25em;
+    padding: 0;
+    margin: 1.5rem 0;
+    background-color: var(--color-hr);
+    border: 0
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    line-height: 1.25
+}
+
+h1, h2 {
+    padding-bottom: .3em;
+    border-bottom: 1px solid var(--color-border)
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+h3 {
+    font-size: 1.25em
+}
+
+h4 {
+    font-size: 1em
+}
+
+h5 {
+    font-size: .875em
+}
+
+h6 {
+    font-size: .85em;
+}
+
+blockquote {
+    margin: 0;
+    padding: 0 1em;
+    color: #57606a;
+    border-left: .25em solid var(--color-border)
+}
+
+ul,
+ol {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 2em
+}
+
+ol ol,
+ul ol {
+    list-style-type: lower-roman
+}
+
+ul ul ol,
+ul ol ol,
+ol ul ol,
+ol ol ol {
+    list-style-type: lower-alpha
+}
+
+hr {
+    box-sizing: content-box;
+    overflow: hidden;
+    height: .25em;
+    padding: 0;
+    margin: 1.5rem 0;
+    background-color: var(--color-border);
+    border: 0;
+}
+
+img {
+    vertical-align: middle;
+    border-style: none;
+    max-width: 100%;
+    box-sizing: content-box;
+}
+
+code, pre {
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+p,
+blockquote,
+ul,
+ol,
+pre {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+pre {
+    padding: 1rem;
+    overflow: auto;
+    background-color: var(--color-code-bg);
+    border-radius: 6px;
+}
+
+pre code {
+    padding: 0;
+    background: none;
+}
+
+code {
+    padding: .2em .4em;
+    margin: 0;
+    background-color: var(--color-code-bg);
+    border-radius: 6px;
+}
+
+body > *:last-child {
+    margin-bottom: 0 !important;
+}
+
+strong {
+    font-weight: bolder
+}

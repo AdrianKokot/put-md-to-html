@@ -16,8 +16,10 @@ Here is an unordered list:
 - Item 1
 - Item 2
   - Subitem 1
-  - Subitem 2
+  - Subitem 2 with some `inline code`
 - Item 3
+
+--- 
 
 Here is an ordered list:
 1. First item
@@ -38,3 +40,4 @@ Here is a code block:
 ```python
 def hello_world():
     print("Hello, world!")
+```
