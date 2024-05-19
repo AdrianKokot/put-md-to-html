@@ -183,7 +183,7 @@ let (|Strong|_|) (line: char list) =
     | '_' :: '_' :: _ ->
         match line with
         | WrappedWith ([ '*'; '*' ], [ '*'; '*' ]) (wrapped, rest)
-        | WrappedWith ([ '_'; '_' ], [ '*'; '*' ]) (wrapped, rest) -> Some(wrapped, rest)
+        | WrappedWith ([ '_'; '_' ], [ '_'; '_' ]) (wrapped, rest) -> Some(wrapped, rest)
         | _ -> None
     | _ -> None
 
