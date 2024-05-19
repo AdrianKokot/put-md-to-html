@@ -18,6 +18,7 @@
     <Compile Include="Markdown\Block.fs" />
     <Compile Include="Html\Inline.fs" />
     <Compile Include="Html\Block.fs" />
+    <Compile Include="Helpers.fs" />
   </ItemGroup>
 
   <ItemGroup>
