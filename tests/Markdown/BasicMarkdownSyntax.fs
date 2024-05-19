@@ -1,6 +1,5 @@
 ﻿module MdToHtml.Tests.Markdown.BaseMarkdownSyntaxDocumentation
 
-// TODO: Add tests that will cover all supported markdown syntax examples from the documentation - https://www.markdownguide.org/basic-syntax/
 
 open NUnit.Framework
 open MdToHtml.Modules.MarkdownParser
@@ -16,7 +15,7 @@ let Setup () = ()
 [<TestCase("##### Heading level 5", 5, "Heading level 5")>]
 [<TestCase("###### Heading level 6", 6, "Heading level 6")>]
 let ShouldParseHeader (line:string, level:int, text:string) =
-    let actual = parseMarkdown [line] // Assuming parseMarkdown accepts a list of strings
+    let actual = parseMarkdown [line] 
 
     let expected = [ Header(level, [ Text(text) ]) ]
     Assert.That(actual, Is.EquivalentTo(expected))
