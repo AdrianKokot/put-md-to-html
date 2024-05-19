@@ -20,32 +20,29 @@ type MarkdownAST =
     | UnorderedList of MarkdownAST list
     | OrderedList of MarkdownAST list
 
+let rec startsWith (prefix: char list) (list: char list) =
+    match prefix, list with
+    | [], _ -> true
+    | _, [] -> false
+    | x :: xs, y :: ys when x = y -> startsWith xs ys
+    | _ -> false
 
-let startsWith (prefix: char list) (lst: char list) =
-    let rec startsWithHelper prefixList list =
-        match prefixList, list with
-        | [], _ -> true
-        | _, [] -> false
-        | x::xs, y::ys when x = y -> startsWithHelper xs ys
-        | _ -> false
-    startsWithHelper prefix lst
-
-let containsSubsequence (subsequence: char list) (lst: char list) =
-    let subsequenceLength = List.length subsequence
-    let rec helper remaining =
+let takeUntil (until: char list) (text: char list) =
+    let rec loop acc remaining =
         match remaining with
-        | [] -> false
-        | _ when startsWith subsequence remaining -> true
-        | _::xs -> helper xs
-    helper lst
+        | [] -> acc |> List.rev
+        | _ when startsWith until remaining -> acc |> List.rev
+        | x :: xs -> loop (x :: acc) xs
 
-let takeUntil (endSequence: char list) (lst: char list) =
-    let rec helper acc remaining endSequence =
-        match remaining with
-        | _ when startsWith endSequence remaining && not (containsSubsequence endSequence (List.tail remaining)) -> List.rev acc
-        | [] -> List.rev acc
-        | x::xs -> helper (x::acc) xs endSequence
-    helper [] lst endSequence
+    loop [] text
+
+let takeUntilLast (until: char list) (text: char list) =
+    let reversedUntil = takeUntil (until |> List.rev) (text |> List.rev)
+
+    if reversedUntil.Length = text.Length then
+        text
+    else
+        text |> List.take (text.Length - reversedUntil.Length - 1)
 
 let (|WrappedWith|_|) (starts: char list, ends: char list) (text: char list) =
     let startsLength = List.length starts
@@ -53,16 +50,22 @@ let (|WrappedWith|_|) (starts: char list, ends: char list) (text: char list) =
 
     if text |> startsWith starts then
         let contentAndRest = text |> List.skip startsLength
-        if List.length contentAndRest <> 0 then
 
-            let content = contentAndRest |> takeUntil ends
+        if List.length contentAndRest <> 0 then
+            let content =
+                if starts = ends then
+                    contentAndRest |> takeUntil starts |> takeUntilLast ends
+                else
+                    contentAndRest |> takeUntilLast ends
+
             let rest = contentAndRest |> List.skip (List.length content + endsLength)
+
             if contentAndRest |> startsWith (content @ ends) then
                 Some(content, rest)
             else
                 None
         else
-             None
+            None
     else
         None
 
@@ -78,10 +81,7 @@ let (|StartsWithRepeated|_|) (repeated: string) (text: string) =
 
     let (count, n) = loop 0 0
 
-    if count = 0 then
-        None
-    else
-        Some(count, text.Substring(n))
+    if count = 0 then None else Some(count, text.Substring(n))
 
 let (|Heading|_|) (line: string) =
     match line with
@@ -172,7 +172,7 @@ let (|InlineCode|_|) (line: char list) =
     match line with
     | '`' :: _ ->
         match line with
-        | WrappedWith (['`'], ['`']) (wrapped, rest) -> Some(wrapped, rest)
+        | WrappedWith ([ '`' ], [ '`' ]) (wrapped, rest) -> Some(wrapped, rest)
         | _ -> None
     | _ -> None
 
@@ -181,10 +181,9 @@ let (|Strong|_|) (line: char list) =
     match line with
     | '*' :: '*' :: _
     | '_' :: '_' :: _ ->
-        match line  with
-        | WrappedWith (['*'; '*'] , ['*'; '*']) (wrapped, rest)
-        | WrappedWith (['_'; '_'], ['*'; '*']) (wrapped, rest) ->
-            Some(wrapped , rest)
+        match line with
+        | WrappedWith ([ '*'; '*' ], [ '*'; '*' ]) (wrapped, rest)
+        | WrappedWith ([ '_'; '_' ], [ '*'; '*' ]) (wrapped, rest) -> Some(wrapped, rest)
         | _ -> None
     | _ -> None
 
@@ -192,19 +191,14 @@ let (|Image|_|) (line: char list) =
     match line with
     | '!' :: '[' :: _ ->
         match line with
-        | WrappedWith (['!'; '['], [']']) (wrapped, rest) ->
+        | WrappedWith ([ '!'; '[' ], [ ']' ]) (wrapped, rest) ->
             match rest with
-            | WrappedWith (['('], [')']) (pathAndTitle, rest) ->
+            | WrappedWith ([ '(' ], [ ')' ]) (pathAndTitle, rest) ->
                 let pathAndTitleStr = pathAndTitle |> List.toArray |> System.String.Concat
                 let parts = pathAndTitleStr.Split([| ' ' |], 2)
+
                 match parts with
-                | [| path; title |] ->
-                    Some(
-                        wrapped,
-                        path,
-                        title.Trim([| '"' |]),
-                        rest
-                    )
+                | [| path; title |] -> Some(wrapped, path, title.Trim([| '"' |]), rest)
                 | [| path |] -> Some(wrapped, path, "", rest)
                 | _ -> None
             | _ -> None
@@ -215,19 +209,14 @@ let (|Link|_|) (line: char list) =
     match line with
     | '[' :: _ ->
         match line with
-        | WrappedWith (['['], [']']) (wrapped, rest) ->
+        | WrappedWith ([ '[' ], [ ']' ]) (wrapped, rest) ->
             match rest with
-            | WrappedWith (['('], [')']) (urlAndTitle, rest) ->
+            | WrappedWith ([ '(' ], [ ')' ]) (urlAndTitle, rest) ->
                 let urlAndTitleStr = urlAndTitle |> Array.ofList |> System.String.Concat
                 let parts = urlAndTitleStr.Split([| ' ' |], 2)
+
                 match parts with
-                | [| url; title |] ->
-                    Some(
-                        wrapped,
-                        url,
-                        title.Trim([| '"' |]),
-                        rest
-                    )
+                | [| url; title |] -> Some(wrapped, url, title.Trim([| '"' |]), rest)
                 | [| url |] -> Some(wrapped, url, "", rest)
                 | _ -> None
             | _ -> None
@@ -239,9 +228,8 @@ let (|Emphasis|_|) (line: char list) =
     | '*' :: _
     | '_' :: _ ->
         match line with
-        | WrappedWith (['*'], ['*']) (wrapped, rest)
-        | WrappedWith (['_'], ['_']) (wrapped, rest) ->
-            Some(wrapped, rest)
+        | WrappedWith ([ '*' ], [ '*' ]) (wrapped, rest)
+        | WrappedWith ([ '_' ], [ '_' ]) (wrapped, rest) -> Some(wrapped, rest)
         | _ -> None
     | _ -> None
 
@@ -309,7 +297,7 @@ let rec parseChars (line: char list) (acc: char list) =
             yield! parseChars rest []
         | InlineCode(wrapped, rest) ->
             yield! parseCharsAcc acc
-            yield InlineCode(wrapped|> List.toArray |> System.String.Concat)
+            yield InlineCode(wrapped |> List.toArray |> System.String.Concat)
             yield! parseChars rest []
         | c :: rest -> yield! parseChars rest (c :: acc)
     }
