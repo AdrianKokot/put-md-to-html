@@ -7,13 +7,6 @@ open MdToHtml.Modules.MarkdownParser
 let Setup () =
     ()
 
-[<Test>]
-let ShouldParseCodeBlock () =
-    let content = "```fsharp\nlet x = 1\n```".Split([| '\n' |]) |> List.ofArray
-    let actual = parseMarkdown content
-    let expected = [CodeBlock("fsharp", ["let x = 1"])]
-    
-    Assert.That(actual, Is.EquivalentTo(expected))
 
 [<Test>]
 let ShouldParseHorizontalRuleFromThreeDashes () =
