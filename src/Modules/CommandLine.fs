@@ -1,8 +1,8 @@
 ﻿module MdToHtml.Modules.CommandLine
 
 type CommandLineOptions =
-    { readFromFile: bool
-      filePath: string
+    { 
+      filePath: string option
       inputText: string
       title: string
       outputFilePath: string option}
@@ -17,8 +17,7 @@ let rec private _parseCommandLineArguments argv options =
         _parseCommandLineArguments
             tail
             { options with
-                readFromFile = true
-                filePath = filePath }
+                filePath = Some filePath }
             
     | "-t" :: title :: tail
     | "--title" :: title :: tail ->
@@ -40,8 +39,7 @@ let rec private _parseCommandLineArguments argv options =
 let parseCommandLineArguments argv =
     _parseCommandLineArguments
         argv
-        { readFromFile = false
-          filePath = ""
+        { filePath = None
           inputText = ""
           title = "Markdown Document"
           outputFilePath = None}
