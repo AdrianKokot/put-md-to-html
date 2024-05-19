@@ -90,25 +90,6 @@ let ShouldParseItalic_floor() =
 
     Assert.That(actual, Is.EquivalentTo(expected))
 
-//[<Test>]
-//let ShouldParseBoldAndItalic() =
-//    let content = "This text is ***really important***.".Split([| '\n' |]) |> List.ofArray
-//    let actual = parseMarkdown content
-
-//    let expected =
-//        [Paragraph [Text "This text is "; Strong [Text "really important"]; Text "."]]
-
-//    Assert.That(actual, Is.EquivalentTo(expected))
-
-//[<Test>]
-//let ShouldParseBoldAndItalic_floor() =
-//    let content = "This text is ___really important___.".Split([| '\n' |]) |> List.ofArray
-//    let actual = parseMarkdown content
-
-//    let expected =
-//        [Paragraph [Text "This text is "; Strong [Text "really important"]; Text "."]]
-
-//    Assert.That(actual, Is.EquivalentTo(expected))
 
 [<Test>]
 let ShouldParseBoldAndItalic_floorsAndStar() =
@@ -222,4 +203,75 @@ let ShouldParseUnorderedListPlus() =
                 ListItem([ Paragraph([ Text("Third") ]) ])
                 ListItem([ Paragraph([ Text("Fourth") ]) ])])]
 
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseUnorderedListStartsWithNum() =
+    let content = "- 1968\. A great year!\n- I think 1969 was second best.".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+
+    let expected =
+        [ UnorderedList(
+              [ ListItem([ Paragraph ([Text "1968. A great year!"]) ])
+                ListItem([ Paragraph ([Text "I think 1969 was second best."]) ])])]
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+    
+
+
+[<Test>]
+let ShouldParseUnorderedListParagraph() =
+    let content = "* This is the first list item.\n* Here's the second list item.\nI need to add another paragraph below the second list item.\n* And here's the third list item.".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+
+    let expected =
+        [ UnorderedList(
+              [ListItem ([Paragraph ([Text "This is the first list item."])]);
+                ListItem([Paragraph ([Text "Here's the second list item."; Text "I need to add another paragraph below the second list item."])]);
+                ListItem([Paragraph ([Text "And here's the third list item."])])])];
+
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+
+
+[<Test>]
+let ShouldParseInlineCode () =
+    let content = "At the command prompt, type `nano`.".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+    let expected = [Paragraph [Text "At the command prompt, type "; InlineCode "nano"; Text "."]]
+    
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+[<Test>]
+let ShouldParseCodeBlock () =
+    let content = "```html\nUse `code` in your Markdown file.\n```".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+    let expected = [CodeBlock ("html", ["Use `code` in your Markdown file."])]
+    
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+
+[<Test>]
+let ShouldParseHorizontalRuleThreeDashes () =
+    let content = "Try to put a blank line before...\n---\n...and after a horizontal rule.".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+    let expected =     [
+        Paragraph [Text "Try to put a blank line before..."]
+        HorizontalRule
+        Paragraph [Text "...and after a horizontal rule."]
+    ]
+    
+    Assert.That(actual, Is.EquivalentTo(expected))
+
+    
+[<Test>]
+let ShouldParseHorizontalRuleThreeStars () =
+    let content = "Try to put a blank line before...\n***\n...and after a horizontal rule.".Split([| '\n' |]) |> List.ofArray
+    let actual = parseMarkdown content
+    let expected =     [
+        Paragraph [Text "Try to put a blank line before..."]
+        HorizontalRule
+        Paragraph [Text "...and after a horizontal rule."]
+    ]
+    
     Assert.That(actual, Is.EquivalentTo(expected))
